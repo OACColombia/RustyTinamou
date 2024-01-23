@@ -1,4 +1,5 @@
-#_Turdus fuscater_
+#_Acoustic activity Rusty Tynamou_
+#Orlando Acevedo-Charry
 
 library(cowplot)# ggdraw
 library(tidyverse) # maneja datos
@@ -15,10 +16,6 @@ annual <- data %>%
 
 head(annual)
 
-annual$freq <- annual[,3] %>% mutate_if(is.numeric, ~1 * (. != 0))
-
-a <- as.data.table(annual)
-
 Aabsences <- data.frame("Source" = rep("ARBIMON",11),
                       "Month" = c(1:7,9:12),
                       "freq" = rep(0,11))
@@ -31,20 +28,18 @@ XCabsences <- data.frame("Source" = rep("xeno-canto",5),
                          "Month" = c(1:3,6,11),
                          "freq" = rep(0,5))
 
-an <- rbind(Aabsences,MLabsences,XCabsences,a)
+an <- rbind(Aabsences,MLabsences,XCabsences,annual)
 
 an<-as.data.table(an)#to work with data.table
 
 an[, fct_month := factor(Month, levels = 1:12, labels = month.abb)]
 
-anf <- ggplot(an, aes(x = fct_month, y = Source, 
-                           group = Source, colour = Source)) + 
-  geom_line(alpha = 0.5) +
-  geom_point(size = 5, aes(alpha = as.factor(freq))) +
-  scale_y_discrete(expand = c(0, 1), breaks = NULL) +
-  coord_polar() +
+anf <- ggplot(an, aes(x = fct_month, y = freq)) + 
+  geom_col(aes(fill = Source))+
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_polar(start = -0.3) +
   theme_bw() + xlab(NULL) + ylab(NULL) +
-  labs(title = "Annual pattern",alpha = "Detection")+
+  labs(title = "Annual pattern",subtitle = "Number of recordings")+
   theme(legend.position = "right")
 
 #Dial
@@ -53,8 +48,6 @@ diel <- data %>%
   summarise(freq = n())
 
 head(diel)
-
-diel$freq <- rep(1,nrow(diel))
 
 dAabsences <- data.frame("Source" = rep("ARBIMON",20),
                         "Hour" = c(0:16,18,19,21),
@@ -70,17 +63,15 @@ dXCabsences <- data.frame("Source" = rep("xeno-canto",18),
 
 di <- rbind(dAabsences,dMLabsences,dXCabsences,diel)
 
-dif <- ggplot(di, aes(x = Hour, y = Source, 
-               group = Source, colour = Source)) + 
-  geom_line() +
-  geom_point(size = 5, aes(alpha = as.factor(freq))) +
-  scale_y_discrete(expand = c(0, 1), breaks = NULL) +
-  scale_x_continuous(breaks = c(0,4,8,12,16,20))+
+dif <- ggplot(di, aes(x = Hour, y = freq)) + 
+  geom_col(aes(fill = Source))+
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_x_continuous(breaks = c(0,2,4,6,8,10,12,14,16,18,20,22))+
   coord_polar(start = -0.1) +
   theme_bw() + xlab(NULL) + ylab(NULL) +
-  labs(alpha = "Detection",title = "Diel pattern")+
+  labs(subtitle = "Number of recordings",title = "Diel pattern")+
   theme(legend.position = "left")
 
 ggdraw()+
-  draw_plot(anf, x = 0, y = 0, width = 0.6, height = 1)+
-  draw_plot(dif, x = 0.375, y = 0, width = 0.6, height = 1)
+  draw_plot(anf, x = 0, y = 0, width = 0.5, height = 1)+
+  draw_plot(dif, x = 0.375, y = 0, width = 0.5, height = 1)
